@@ -2,7 +2,7 @@
 name: pr-backlog-audit
 description: Audit every open PR by an author for work nobody is tracking — CodeRabbit body-only findings that later reviews stopped counting, CHANGES_REQUESTED reviews, CI that never ran on a fork, unresolved threads, conflicts and unchecked PR checklists. Use before declaring a repo clean, when asked to find unaddressed review comments across PRs, or when a maintainer says a gate was "incomplete or unchecked".
 metadata:
-  version: "1"
+  version: "2"
 ---
 
 # PR backlog audit
@@ -17,7 +17,20 @@ the work behind them.
 | **Body-only findings** (outside-diff, additional/unverified) | they carry no thread; a later review that only sees changed files drops them from its totals | the finding, plus a comment naming a fixing commit, or a change to that path after it was raised |
 | **Human review state** | `CHANGES_REQUESTED` is not a CodeRabbit count; an old `APPROVED` predates your last push | `reviewDecision` and each review's state |
 | **Absent CI** | on a fork PR the workflows sit in `action_required`, `gh pr checks` lists only the bot, and the combined status is `pending` because *nothing ran* | workflow-run conclusions, `check-suites`, and the empty `/statuses` (`total_count: 0`) |
+| **Paused CodeRabbit series** | a paused series never restarts itself: no review will ever land, so every count freezes at its last value | check-run title `Review paused`/`Skipped`, or "reviews paused" in the bot's summary; `cr.review_state == "paused"` |
 | **Unchecked PR checklist** | a maintainer's gate ("run `cargo xtask ci` end to end, tick the checklist") lives in the template, not in CI | the body's `- [ ]` items |
+
+## Resume paused series first
+
+A paused series blocks everything downstream — in a stack, one pause can freeze every PR at once.
+
+```bash
+python scripts/resume_paused.py --repos storytold/gridcraft,storytold/deckcraft   # --dry-run first
+```
+
+It posts `@coderabbitai resume` on each paused PR, then one `@coderabbitai full review` where the head
+still has no completed review. Confirm the bot answers "Reviews resumed"; a "wait N minutes" answer
+means the chat quota is exhausted — run it again later rather than retrying in a burst.
 
 ## Run it
 

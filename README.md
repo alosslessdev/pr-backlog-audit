@@ -7,6 +7,8 @@ An agent skill that audits every open pull request by an author for work nobody 
 - **`CHANGES_REQUESTED` reviews** — blocking even when every count is zero;
 - **CI that never ran** on a fork PR (`action_required`, empty commit status, `pending` combined
   status);
+- **paused CodeRabbit series**, which never restart themselves and freeze every count at its last
+  value;
 - unresolved threads, failed checks, merge conflicts, and unchecked items in the PR template.
 
 The audit half of [pr-review-loop](https://github.com/alosslessdev/pr-review-loop); that skill drives
@@ -52,7 +54,8 @@ changed files — reported **0 outside-diff findings**. The PR looked clean, the
 |---|---|
 | `SKILL.md` | the four blind spots, the statuses, the triage order |
 | `scripts/audit_prs.py` | the audit itself (per-PR blockers + body-only findings with evidence) |
-| `scripts/prstate.py` | one-PR state: findings, threads, review decision, checklist, absent CI, blockers |
+| `scripts/prstate.py` | one-PR state: findings, threads, review decision, checklist, absent CI, review state, blockers |
+| `scripts/resume_paused.py` | resume PRs whose CodeRabbit review series is paused |
 
 ## Licence
 
