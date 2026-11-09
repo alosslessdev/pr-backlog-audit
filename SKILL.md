@@ -2,7 +2,7 @@
 name: pr-backlog-audit
 description: Audit every open PR by an author for work nobody is tracking — CodeRabbit body-only findings that later reviews stopped counting, CHANGES_REQUESTED reviews, CI that never ran on a fork, unresolved threads, conflicts and unchecked PR checklists. Use before declaring a repo clean, when asked to find unaddressed review comments across PRs, or when a maintainer says a gate was "incomplete or unchecked".
 metadata:
-  version: "2"
+  version: "3"
 ---
 
 # PR backlog audit
@@ -18,6 +18,7 @@ the work behind them.
 | **Human review state** | `CHANGES_REQUESTED` is not a CodeRabbit count; an old `APPROVED` predates your last push | `reviewDecision` and each review's state |
 | **Absent CI** | on a fork PR the workflows sit in `action_required`, `gh pr checks` lists only the bot, and the combined status is `pending` because *nothing ran* | workflow-run conclusions, `check-suites`, and the empty `/statuses` (`total_count: 0`) |
 | **Paused CodeRabbit series** | a paused series never restarts itself: no review will ever land, so every count freezes at its last value | check-run title `Review paused`/`Skipped`, or "reviews paused" in the bot's summary; `cr.review_state == "paused"` |
+| **Pending checks** | `pending` is not green; only `completed/success` (or `skipped` by design) is | `check-runs` on the head, per name |
 | **Unchecked PR checklist** | a maintainer's gate ("run `cargo xtask ci` end to end, tick the checklist") lives in the template, not in CI | the body's `- [ ]` items |
 
 ## Resume paused series first
@@ -65,9 +66,15 @@ Finding statuses:
 
 ## What "done" looks like
 
+Done = every GitHub check on the head green (gate, CodeRabbit, SonarCloud; `skipped` fine, `pending`
+not) **and** CodeRabbit clean on that head: all actionable / outside-diff / additional addressed, none
+new after the last review, reviews unpaused, all threads resolved; nitpicks ignored. Plus every human
+review answered.
+
 - No `needs-review` or `likely` rows left for the PRs you audited.
 - No `CHANGES_REQUESTED` review left unanswered; the checklist matches what actually ran.
-- CI either genuinely green, or its absence stated with the local gate transcript attached.
+- CI either genuinely green, or its absence stated with the local gate transcript attached (fork PRs
+  sit in `action_required`, which is absent, not green).
 - 0 unresolved threads, 0 actionable/outside-diff/additional on the head, mergeable.
 
 ## Notes

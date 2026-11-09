@@ -9,7 +9,10 @@ An agent skill that audits every open pull request by an author for work nobody 
   status);
 - **paused CodeRabbit series**, which never restart themselves and freeze every count at its last
   value;
-- unresolved threads, failed checks, merge conflicts, and unchecked items in the PR template.
+- unresolved threads, failing **and pending** checks, and unchecked items in the PR template.
+
+Conflicts with the base branch are deliberately not audited: in a fast-moving repository a branch goes
+dirty within hours, so a conflict is expected state, not untended work.
 
 The audit half of [pr-review-loop](https://github.com/alosslessdev/pr-review-loop); that skill drives
 a single PR to its stop condition, this one finds what is still open across a repo.
