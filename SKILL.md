@@ -2,7 +2,7 @@
 name: pr-backlog-audit
 description: Audit every open PR by an author for work nobody is tracking — CodeRabbit body-only findings that later reviews stopped counting, CHANGES_REQUESTED reviews, CI that never ran on a fork, unresolved threads, conflicts and unchecked PR checklists. Use before declaring a repo clean, when asked to find unaddressed review comments across PRs, or when a maintainer says a gate was "incomplete or unchecked".
 metadata:
-  version: "5"
+  version: "6"
 ---
 
 # PR backlog audit
@@ -19,6 +19,7 @@ the work behind them.
 | **Absent CI** | on a fork PR the workflows sit in `action_required`, `gh pr checks` lists only the bot, and the combined status is `pending` because *nothing ran* | workflow-run conclusions, `check-suites`, and the empty `/statuses` (`total_count: 0`) |
 | **Paused CodeRabbit series** | a paused series never restarts itself: no review will ever land, so every count freezes at its last value | check-run title `Review paused`/`Skipped`, or "reviews paused" in the bot's summary; `cr.review_state == "paused"` |
 | **Pending checks** | `pending` is not green; only `completed/success` (or `skipped` by design) is | `check-runs` on the head, per name |
+| **Unanswered human reviews** | a reviewer's notes are a work list, not a status; a review with no author reply after it is untended | `human_scan.py` — human events per PR vs the author's latest comment |
 | **Unchecked PR checklist** | a maintainer's gate ("run `cargo xtask ci` end to end, tick the checklist") lives in the template, not in CI | the body's `- [ ]` items |
 
 ## Resume paused series first

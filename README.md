@@ -59,6 +59,7 @@ changed files — reported **0 outside-diff findings**. The PR looked clean, the
 | `scripts/audit_prs.py` | the audit itself (per-PR blockers + body-only findings with evidence) |
 | `scripts/prstate.py` | one-PR state: findings, threads, review decision, checklist, absent CI, review state, blockers |
 | `scripts/resume_paused.py` | resume PRs whose CodeRabbit review series is paused |
+| `scripts/human_scan.py` | PRs whose human reviews/comments were never answered |
 
 ## Licence
 
