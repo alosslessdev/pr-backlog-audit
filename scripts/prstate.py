@@ -8,7 +8,8 @@ Reports the things the loop actually gates on, and nothing that needs interpreta
   * unresolved review threads with their GraphQL ids (needed to resolve them);
   * human reviews and comments (excluding bots and yourself);
   * CI failures and pending checks on the head;
-  * mergeability, the GitHub review decision, and whether CI actually ran on this fork PR.
+  * mergeability (as information — conflicts are expected when the base moves fast), the GitHub review
+    decision, and whether CI actually ran on this fork PR.
 
 Anything that blocks a maintainer's approval is collected in `blockers`, so the loop can gate on a
 short list instead of re-deriving it from counts.
@@ -120,7 +121,10 @@ def gather(repo, pr, me=None):
     # A paused review series stalls every PR in the stack: CodeRabbit says "reviews paused" at the
     # top of its summary and its check run reads "Review paused" / "Skipped". Only
     # `@coderabbitai resume` restarts it.
-    pause_re = re.compile(r"paused|rate limit|review skipped|reviews (?:are )?paused", re.I)
+    # "paused" is a series-level state the bot announces; "skipped"/"rate limited" just mean no review
+    # is possible right now (quota or nothing new), and a fresh head with no run yet is neither. Only
+    # the explicit pause needs `@coderabbitai resume`; everything else needs a review request.
+    pause_re = re.compile(r"\bpaused\b|reviews (?:are )?paused", re.I)
     run_paused = any(pause_re.search(((c.get("output") or {}).get("title") or "")
                                      + ((c.get("output") or {}).get("summary") or ""))
                      for c in cr_runs if c.get("status") == "completed")
@@ -246,8 +250,8 @@ def gather(repo, pr, me=None):
         b.append("ci: " + ", ".join(c["name"] for c in out["ci"]["failed"]))
     if ci_absent:
         b.append("ci: no workflow ran on this head (action_required / empty status)")
-    if pull.get("mergeable") is False:
-        b.append("merge: conflicts with the base branch")
+    # Conflicts are ambient in a fast-moving repository: the base can move within hours, so a dirty
+    # branch is expected state, not a blocker. `mergeable` stays in the output as information.
     if checklist["unchecked"]:
         b.append(f"checklist: {checklist['unchecked']} unchecked item(s) in the PR body")
 
