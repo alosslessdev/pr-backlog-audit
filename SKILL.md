@@ -2,7 +2,7 @@
 name: pr-backlog-audit
 description: Audit every open PR by an author for work nobody is tracking — CodeRabbit body-only findings that later reviews stopped counting, CHANGES_REQUESTED reviews, CI that never ran on a fork, unresolved threads, conflicts and unchecked PR checklists. Use before declaring a repo clean, when asked to find unaddressed review comments across PRs, or when a maintainer says a gate was "incomplete or unchecked".
 metadata:
-  version: "3"
+  version: "4"
 ---
 
 # PR backlog audit
