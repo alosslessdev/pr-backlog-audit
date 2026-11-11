@@ -2,7 +2,7 @@
 name: pr-backlog-audit
 description: Audit every open PR by an author for work nobody is tracking — CodeRabbit body-only findings that later reviews stopped counting, CHANGES_REQUESTED reviews, CI that never ran on a fork, unresolved threads, conflicts and unchecked PR checklists. Use before declaring a repo clean, when asked to find unaddressed review comments across PRs, or when a maintainer says a gate was "incomplete or unchecked".
 metadata:
-  version: "6"
+  version: "7"
 ---
 
 # PR backlog audit
@@ -10,17 +10,20 @@ metadata:
 "Everything is green" is a claim about *counts*, and counts lie in four specific ways. This skill finds
 the work behind them.
 
-## The four blind spots
+## The blind spots
 
 | Blind spot | Why counts miss it | Evidence you need |
 |---|---|---|
 | **Body-only findings** (outside-diff, additional/unverified) | they carry no thread; a later review that only sees changed files drops them from its totals | the finding, plus a comment naming a fixing commit, or a change to that path after it was raised |
 | **Human review state** | `CHANGES_REQUESTED` is not a CodeRabbit count; an old `APPROVED` predates your last push | `reviewDecision` and each review's state |
-| **Absent CI** | on a fork PR the workflows sit in `action_required`, `gh pr checks` lists only the bot, and the combined status is `pending` because *nothing ran* | workflow-run conclusions, `check-suites`, and the empty `/statuses` (`total_count: 0`) |
+| **Absent CI** | on a fork PR the workflows sit in `action_required`, `gh pr checks` lists only the bot, and the combined status is `pending` because *nothing ran* | workflow-run conclusions, `check-suites`, and the empty `/statuses` (`total_count: 0`); `gh api repos/O/R --jq .permissions` tells you whether approval is even yours to give |
 | **Paused CodeRabbit series** | a paused series never restarts itself: no review will ever land, so every count freezes at its last value | check-run title `Review paused`/`Skipped`, or "reviews paused" in the bot's summary; `cr.review_state == "paused"` |
 | **Pending checks** | `pending` is not green; only `completed/success` (or `skipped` by design) is | `check-runs` on the head, per name |
 | **Unanswered human reviews** | a reviewer's notes are a work list, not a status; a review with no author reply after it is untended | `human_scan.py` — human events per PR vs the author's latest comment |
 | **Unchecked PR checklist** | a maintainer's gate ("run `cargo xtask ci` end to end, tick the checklist") lives in the template, not in CI | the body's `- [ ]` items |
+| **Conflicted PR runs nothing** | GitHub builds no synthetic merge ref for a `CONFLICTING` PR, so `pull_request` workflows are never created — `gh pr checks` is empty and "no failures" is vacuous | `gh api repos/O/R/actions/runs?head_sha=<sha>` (empty = never ran) plus `gh pr view N --json mergeable` |
+| **A check that runs but declines** | the SonarCloud workflow finishes `success` while its log says `SONAR_TOKEN is not available (e.g. a fork pull request); skipping SonarCloud scan`; the app check then shows a number pinned to an older SHA | the workflow log line and the analysis commit — a "%" measured five commits back says nothing about this head |
+| **A verdict that lands after you report** | CodeRabbit can publish seconds after a PR was declared clean, so a remembered "0 findings" is stale the moment it is written | the verdict's timestamp vs your last push; re-read state for the exact SHA you are naming |
 
 ## Resume paused series first
 
