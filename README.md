@@ -7,8 +7,9 @@ An agent skill that audits every open pull request by an author for work nobody 
 - **`CHANGES_REQUESTED` reviews** — blocking even when every count is zero;
 - **CI that never ran** on a fork PR (`action_required`, empty commit status, `pending` combined
   status);
-- **paused CodeRabbit series**, which never restart themselves and freeze every count at its last
+- **Paused CodeRabbit series**, which never restart themselves and freeze every count at its last
   value;
+- **in-flight verdicts** (`in_progress`/`none`), where no count belongs to the current head at all;
 - unresolved threads, failing **and pending** checks, and unchecked items in the PR template.
 
 Conflicts with the base branch are deliberately not audited: in a fast-moving repository a branch goes
@@ -59,6 +60,7 @@ changed files — reported **0 outside-diff findings**. The PR looked clean, the
 | `scripts/audit_prs.py` | the audit itself (per-PR blockers + body-only findings with evidence) |
 | `scripts/prstate.py` | one-PR state: findings, threads, review decision, checklist, absent CI, review state, blockers |
 | `scripts/resume_paused.py` | resume PRs whose CodeRabbit review series is paused |
+| `scripts/wait_verdict.py` | wait until CodeRabbit is `final` on each head (20,000-iteration budget) |
 | `scripts/human_scan.py` | PRs whose human reviews/comments were never answered |
 
 ## Licence

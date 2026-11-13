@@ -2,7 +2,7 @@
 name: pr-backlog-audit
 description: Audit every open PR by an author for work nobody is tracking — CodeRabbit body-only findings that later reviews stopped counting, CHANGES_REQUESTED reviews, CI that never ran on a fork, unresolved threads, conflicts and unchecked PR checklists. Use before declaring a repo clean, when asked to find unaddressed review comments across PRs, or when a maintainer says a gate was "incomplete or unchecked".
 metadata:
-  version: "7"
+  version: "8"
 ---
 
 # PR backlog audit
@@ -23,6 +23,7 @@ the work behind them.
 | **Unchecked PR checklist** | a maintainer's gate ("run `cargo xtask ci` end to end, tick the checklist") lives in the template, not in CI | the body's `- [ ]` items |
 | **Conflicted PR runs nothing** | GitHub builds no synthetic merge ref for a `CONFLICTING` PR, so `pull_request` workflows are never created — `gh pr checks` is empty and "no failures" is vacuous | `gh api repos/O/R/actions/runs?head_sha=<sha>` (empty = never ran) plus `gh pr view N --json mergeable` |
 | **A check that runs but declines** | the SonarCloud workflow finishes `success` while its log says `SONAR_TOKEN is not available (e.g. a fork pull request); skipping SonarCloud scan`; the app check then shows a number pinned to an older SHA | the workflow log line and the analysis commit — a "%" measured five commits back says nothing about this head |
+| **A verdict still in flight** | `review_state: in_progress`/`none` means no verdict exists on the head; every count belongs to an older head | `cr.review_state` plus the check-run status; wait with `wait_verdict.py` |
 | **A verdict that lands after you report** | CodeRabbit can publish seconds after a PR was declared clean, so a remembered "0 findings" is stale the moment it is written | the verdict's timestamp vs your last push; re-read state for the exact SHA you are naming |
 
 ## Resume paused series first
@@ -75,11 +76,20 @@ not) **and** CodeRabbit clean on that head: all actionable / outside-diff / addi
 new after the last review, reviews unpaused, all threads resolved; nitpicks ignored. Plus every human
 review answered.
 
+**A PR whose review is still in flight is not clean.** `cr.review_state` must be `final` on the
+**current** head; `in_progress`, `none`, `pending`, and `paused` are wait states. Before reporting a
+repo clean, run the waiter (20,000-iteration budget) and re-audit the head it wakes on:
+
+```bash
+python scripts/wait_verdict.py --repos storytold/gridcraft,storytold/deckcraft
+```
+
 - No `needs-review` or `likely` rows left for the PRs you audited.
 - No `CHANGES_REQUESTED` review left unanswered; the checklist matches what actually ran.
 - CI either genuinely green, or its absence stated with the local gate transcript attached (fork PRs
   sit in `action_required`, which is absent, not green).
 - 0 unresolved threads, 0 actionable/outside-diff/additional on the head, mergeable.
+- No PR left in `in_progress`, `pending`, `none`, or `paused` — a timeout there is not a pass.
 
 ## Notes
 
@@ -88,5 +98,6 @@ review answered.
 - `answered` can be an agent answering "fixed in <sha> for a different file" — check the path matches.
 - This skill is the audit half of the loop; for driving a single PR to the stop condition, use
   `pr-review-loop`. The two share `scripts/prstate.py` (vendored copy).
-- Budgets and cadence do not apply here: an audit is a snapshot. Re-run it after a fix round or before
-  reporting a repo as clean.
+- An audit of findings is a snapshot; "clean" is not. If any PR is `in_progress`, run
+  `scripts/wait_verdict.py` (20,000-iteration budget) and re-audit the head it wakes on. Re-run the
+  audit after a fix round or before reporting a repo as clean.
