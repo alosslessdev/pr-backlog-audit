@@ -26,6 +26,14 @@ the work behind them.
 | **A verdict still in flight** | `review_state: in_progress`/`none` means no verdict exists on the head; every count belongs to an older head | `cr.review_state` plus the check-run status; wait with `wait_verdict.py` |
 | **A verdict that lands after you report** | CodeRabbit can publish seconds after a PR was declared clean, so a remembered "0 findings" is stale the moment it is written | the verdict's timestamp vs your last push; re-read state for the exact SHA you are naming |
 
+## Timeline
+
+The scan is a snapshot: seconds to minutes per repository. Clearing what it finds is not. Each fix
+creates a head; each head needs a gate run, a CodeRabbit verdict and a human reply, so a batch can
+take **up to 72 hours** with [pr-review-loop](https://github.com/alosslessdev/pr-review-loop).
+Treat every audit as a snapshot and re-run it after the last push; never report a repo clean from a
+scan taken before the final head.
+
 ## Resume paused series first
 
 A paused series blocks everything downstream — in a stack, one pause can freeze every PR at once.

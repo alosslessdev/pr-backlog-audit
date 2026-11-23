@@ -38,6 +38,14 @@ python scripts/audit_prs.py --repo storytold/gridcraft --json
 Output: per repo, a table of open PRs with blockers and unaddressed-finding counts, then the findings
 that need a code check.
 
+## Timeline
+
+The audit itself is a snapshot: seconds to minutes per repository. The work it finds is not. Each
+fix creates a new head, and each head needs a full gate run, a CodeRabbit verdict and a human reply;
+[pr-review-loop](https://github.com/alosslessdev/pr-review-loop) drives that, and a batch can take
+**up to 72 hours**. Re-run the audit after each fix round, and never report a repository clean from
+an audit taken before the last push.
+
 ## Why it exists
 
 A real case: a Major performance finding ("limit gallery texture work to visible thumbnails") was
