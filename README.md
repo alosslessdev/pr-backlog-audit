@@ -29,6 +29,10 @@ Requires `gh`, authenticated for the host you target.
 
 ## Run
 
+Authenticate as the author first (`gh auth switch --user <author>`; confirm `gh api user`). The
+switch is global, so another agent can change it under you, and a different account cannot resume or
+resolve that author's PRs.
+
 ```bash
 python scripts/audit_prs.py --repos storytold/gridcraft,storytold/deckcraft,storytold/wordcraft
 python scripts/audit_prs.py --repo storytold/gridcraft --pr 3606

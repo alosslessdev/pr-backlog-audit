@@ -51,6 +51,11 @@ A push or a merge of `main` does not unpause the series. Re-check `review_state`
 
 ## Run it
 
+Authenticate as the PR's author first: `gh auth switch --user <author>` and confirm
+`gh api user --jq .login` prints the author. The switch is global to the host, so a subagent can
+change it under you; a wrong account changes author-filtered results and cannot resume a series or
+resolve the author's threads.
+
 ```bash
 python scripts/audit_prs.py --repos storytold/gridcraft,storytold/deckcraft,storytold/wordcraft
 python scripts/audit_prs.py --repo storytold/gridcraft --pr 3606      # one PR, full detail
