@@ -44,7 +44,8 @@ The audit itself is a snapshot: seconds to minutes per repository. The work it f
 fix creates a new head, and each head needs a full gate run, a CodeRabbit verdict and a human reply;
 [pr-review-loop](https://github.com/alosslessdev/pr-review-loop) drives that, and a batch can take
 **up to 72 hours**. Re-run the audit after each fix round, and never report a repository clean from
-an audit taken before the last push.
+an audit taken before the last push. A push or a merge of `main` does not unpause a CodeRabbit series:
+resume it before waiting on a verdict.
 
 ## Why it exists
 

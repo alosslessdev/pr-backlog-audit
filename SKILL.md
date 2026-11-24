@@ -46,6 +46,9 @@ It posts `@coderabbitai resume` on each paused PR, then one `@coderabbitai full 
 still has no completed review. Confirm the bot answers "Reviews resumed"; a "wait N minutes" answer
 means the chat quota is exhausted — run it again later rather than retrying in a burst.
 
+A push or a merge of `main` does not unpause the series. Re-check `review_state` after every new head;
+`wait_verdict.py` exits 3 on a paused head instead of waiting out its budget.
+
 ## Run it
 
 ```bash
